@@ -18,7 +18,6 @@
 /* This implementation of chcon(1) is largely based on the implementation
  * provided by the GNU project in their coreutils suite.  */
 
-#include "CLI/CLI.hpp"
 #include <CLI/CLI.hpp>
 #include <iostream>
 #include <string>
