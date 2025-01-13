@@ -178,7 +178,6 @@ main (int argc, char **argv)
   if (opts.recursive
       && !opts.no_preserve_root)
     {
-      /* TODO: validate we are no operating on /.  */
       /* TODO: validate we are not operating on /.  */
     }
 
