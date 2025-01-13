@@ -20,6 +20,7 @@
 
 #include <CLI/CLI.hpp>
 #include <iostream>
+#include <selinux/selinux.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -133,6 +134,18 @@ main (int argc, char **argv)
       std::cerr << progname << ": missing operand FILES\n"
                 << "Type '" << progname << " --help' for more information.\n";
       return 1;
+    }
+
+  if (!opts.reference_file.empty ())
+    {
+      char *context = nullptr;
+      if (getfilecon (opts.reference_file.c_str (),
+                      &context) < 0)
+        {
+          std::cerr << progname << ": failed to get security context of '"
+                    << opts.reference_file << "': " << strerror(errno) << '\n';
+          return 1;
+        }
     }
 
   return 0;

@@ -16,5 +16,5 @@
 
 bin_PROGRAMS = chcon
 chcon_SOURCES = src/chcon.cc
-chcon_CXXFLAGS = $(CLI11_CFLAGS)
-chcon_LDADD = $(CLI11_LIBS)
+chcon_CXXFLAGS = $(CLI11_CFLAGS) $(libselinux_CFLAGS)
+chcon_LDADD = $(CLI11_LIBS) $(libselinux_LIBS)

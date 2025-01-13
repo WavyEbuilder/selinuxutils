@@ -25,6 +25,7 @@ AX_CXX_COMPILE_STDCXX(17, [noext], [mandatory])
 AM_INIT_AUTOMAKE([foreign -Wall])
 
 PKG_CHECK_MODULES([CLI11], [CLI11])
+PKG_CHECK_MODULES([libselinux], [libselinux])
 
 AC_CONFIG_FILES([
     Makefile

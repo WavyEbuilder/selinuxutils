@@ -24,10 +24,11 @@ project(
 )
 
 cli11_dep = dependency('CLI11')
+libselinux_dep = dependency('libselinux')
 
 executable(
     'chcon',
     'src/chcon.cc',
-    dependencies: cli11_dep,
+    dependencies: [cli11_dep, libselinux_dep],
     install: true,
 )
