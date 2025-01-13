@@ -124,6 +124,8 @@ main (int argc, char **argv)
       opts.traversal_type = TraversalType::NoFollowLinks;
     }
 
+  opts.dereference = dereference;
+
   if (component_specified
       && !opts.reference_file.empty ())
     {
