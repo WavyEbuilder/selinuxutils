@@ -163,6 +163,23 @@ main (int argc, char **argv)
           return 1;
         }
     }
+  else if (!opts.context.empty ())
+    {
+      /* Check the validity of the provided context.  */
+      if (is_selinux_enabled () > 0
+          && security_check_context (opts.context.c_str ()) < 0)
+        {
+          std::cerr << progname << ": invalid context: '" << opts.context
+                    << "': " << strerror (errno) << '\n';
+          return 1;
+        }
+    }
+
+  if (opts.recursive
+      && !opts.no_preserve_root)
+    {
+      /* TODO: validate we are no operating on /.  */
+    }
 
   return 0;
 }
