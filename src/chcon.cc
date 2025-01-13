@@ -43,14 +43,13 @@ struct Options
   std::string range;
   std::string type;
   std::string reference_file;
+  /* When true, on supported platforms, change the context of where
+     symbolic links may point to instead of just the links themselves.  */
   bool dereference = true;
   bool no_preserve_root = true;
   bool recursive = false;
   bool verbose = false;
   TraversalType traversal_type = TraversalType::NoFollowLinks;
-  /* When true, on supported platforms, change the context of where
-     symbolic links may point to instead of just the links themselves.  */
-  bool affect_symlink_base = true;
 };
 
 int
@@ -95,31 +94,34 @@ main (int argc, char **argv)
     || !opts.type.empty ()
     || !opts.range.empty ();
 
+  bool dereference = true;
+
   if (opts.recursive)
     {
-      /* As we default to affecting symlink bases,
-         we do not need to modify opts.affect_symlink_base here.  */
-      if (opts.traversal_type == TraversalType::NoFollowLinks
-          && opts.dereference)
+      if (opts.traversal_type == TraversalType::NoFollowLinks)
         {
-          std::cerr << progname
-                    << ": error: -R --dereference requires either -H or -L\n";
-          return 1;
-        }
-      if (opts.traversal_type != TraversalType::NoFollowLinks)
-        {
-          if (!opts.dereference)
+          if (opts.dereference)
             {
-              std::cerr << progname << ": error: -R -h requires -P\n";
+              std::cerr << progname
+                        << ": error: -R --dereference requires either -H or -L\n";
               return 1;
             }
-          opts.affect_symlink_base = false;
+          dereference = false;
+        }
+      /* As we default to dereferencing symlinks,
+         we do not need to modify the dereference bool here.  */
+      if (opts.traversal_type != TraversalType::NoFollowLinks
+          && !opts.dereference)
+        {
+          std::cerr << progname << ": error: -R -h requires -P\n";
+          return 1;
         }
     }
   else
     {
+      /* As we default to dereferencing symlinks,
+         we do not need to modify the dereference bool here.  */
       opts.traversal_type = TraversalType::NoFollowLinks;
-      opts.affect_symlink_base = (opts.dereference == false);
     }
 
   if (component_specified
