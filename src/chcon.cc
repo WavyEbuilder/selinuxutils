@@ -143,7 +143,7 @@ main (int argc, char **argv)
                       &context) < 0)
         {
           std::cerr << progname << ": failed to get security context of '"
-                    << opts.reference_file << "': " << strerror(errno) << '\n';
+                    << opts.reference_file << "': " << strerror (errno) << '\n';
           return 1;
         }
     }
