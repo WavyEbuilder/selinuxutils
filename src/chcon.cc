@@ -179,6 +179,7 @@ main (int argc, char **argv)
       && !opts.no_preserve_root)
     {
       /* TODO: validate we are no operating on /.  */
+      /* TODO: validate we are not operating on /.  */
     }
 
   return 0;
