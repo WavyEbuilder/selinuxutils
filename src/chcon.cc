@@ -66,7 +66,7 @@ main (int argc, char **argv)
   /* Files are required, but we handle checking for them ourselves later.  */
   app.add_option ("FILE", opts.files, "files to modify");
   app.add_flag ("--dereference", opts.dereference,
-                "Affect the referent of each symbolic link");
+                "Affect the referent of each symbolic link (default)");
   app.add_flag ("-h,--no-dereference",
                 [&] (size_t) { opts.dereference = false; },
                 "Affect symbolic links instead of referenced files");
