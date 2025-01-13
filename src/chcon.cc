@@ -18,14 +18,19 @@
 /* This implementation of chcon(1) is largely based on the implementation
  * provided by the GNU project in their coreutils suite.  */
 
+#include <algorithm>
 #include <cerrno>
 #include <cstdint>
 #include <CLI/CLI.hpp>
+#include <filesystem>
 #include <iostream>
+#include <iterator>
 #include <selinux/selinux.h>
 #include <string>
 #include <string_view>
 #include <vector>
+
+namespace fs = std::filesystem;
 
 enum class TraversalType : uint8_t
 {
@@ -51,6 +56,33 @@ struct Options
   bool verbose = false;
   TraversalType traversal_type = TraversalType::NoFollowLinks;
 };
+
+static bool
+do_chcon (const std::vector<fs::path> &files,
+          const Options &opts)
+{
+  bool ok = true;
+  /* TODO: impl.  */
+  return ok;
+}
+
+static std::vector<fs::path>
+to_paths (const std::vector<std::string> &vec)
+{
+  std::vector<fs::path> ret;
+  ret.reserve (vec.size ());
+
+  std::transform (vec.begin (), vec.end (), std::back_inserter (ret),
+                 [] (const std::string &str) {
+                   /* While the constructor for fs::path may throw an impl
+                      defined exception, other than allocation failure,
+                      there isn't really a good reason to throw, so don't
+                      bother attempting to catch it.  */
+                   return fs::path (str);
+                 });
+
+  return ret;
+}
 
 int
 main (int argc, char **argv)
@@ -183,5 +215,8 @@ main (int argc, char **argv)
       /* TODO: validate we are not operating on /.  */
     }
 
-  return 0;
+  const auto files = to_paths (opts.files);
+  const bool ok = do_chcon (files, opts);
+
+  return ok ? 0 : 1;
 }
