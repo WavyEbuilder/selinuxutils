@@ -20,6 +20,8 @@ AC_CONFIG_AUX_DIR([build-aux])
 
 AC_PROG_CXX
 
+AX_CXX_COMPILE_STDCXX(17, [noext], [mandatory])
+
 AM_INIT_AUTOMAKE([foreign -Wall])
 
 AC_CONFIG_FILES([
