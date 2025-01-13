@@ -80,7 +80,7 @@ main (int argc, char **argv)
 
   CLI11_PARSE (app, argc, argv);
 
-  bool component_specified = !opts.user.empty ()
+  const bool component_specified = !opts.user.empty ()
     || !opts.role.empty ()
     || !opts.type.empty ()
     || !opts.range.empty ();
