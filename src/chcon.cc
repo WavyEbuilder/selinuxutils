@@ -18,12 +18,20 @@
 /* This implementation of chcon(1) is largely based on the implementation
  * provided by the GNU project in their coreutils suite.  */
 
+#include <cstdint>
 #include <CLI/CLI.hpp>
 #include <iostream>
 #include <selinux/selinux.h>
 #include <string>
 #include <string_view>
 #include <vector>
+
+enum class TraversalType : uint8_t
+{
+  NoFollowLinks = 0,
+  FollowLinksToDirs,
+  FollowAllLinks,
+};
 
 struct Options
 {
@@ -38,7 +46,7 @@ struct Options
   bool no_preserve_root = true;
   bool recursive = false;
   bool verbose = false;
-  char traverse_option = 'P';
+  TraversalType traversal_type = TraversalType::NoFollowLinks;
   /* When true, on supported platforms, change the context of where
      symbolic links may point to instead of just the links themselves.  */
   bool affect_symlink_base = true;
@@ -72,11 +80,11 @@ main (int argc, char **argv)
   app.add_flag ("-R,--recursive", opts.recursive,
                 "Operate on files and directories recursively");
   app.add_flag ("-v,--verbose", opts.verbose, "Output a diagnostic for every file processed");
-  app.add_flag ("-H", [&] (size_t) { opts.traverse_option = 'H'; },
+  app.add_flag ("-H", [&] (size_t) { opts.traversal_type = TraversalType::FollowLinksToDirs; },
                 "Traverse symbolic links to directories on command line");
-  app.add_flag ("-L", [&] (size_t) { opts.traverse_option = 'L'; },
+  app.add_flag ("-L", [&] (size_t) { opts.traversal_type = TraversalType::FollowAllLinks; },
                 "Traverse every symbolic link to a directory");
-  app.add_flag ("-P", [&] (size_t) { opts.traverse_option = 'P'; },
+  app.add_flag ("-P", [&] (size_t) { opts.traversal_type = TraversalType::NoFollowLinks; },
                 "Do not traverse any symbolic links (default)");
 
   CLI11_PARSE (app, argc, argv);
@@ -90,14 +98,14 @@ main (int argc, char **argv)
     {
       /* As we default to affecting symlink bases,
          we do not need to modify opts.affect_symlink_base here.  */
-      if (opts.traverse_option == 'P'
+      if (opts.traversal_type == TraversalType::NoFollowLinks
           && opts.dereference)
         {
           std::cerr << progname
                     << ": error: -R --dereference requires either -H or -L\n";
           return 1;
         }
-      if (opts.traverse_option != 'P')
+      if (opts.traversal_type != TraversalType::NoFollowLinks)
         {
           if (!opts.dereference)
             {
