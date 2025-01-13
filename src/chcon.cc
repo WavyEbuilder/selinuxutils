@@ -115,6 +115,11 @@ main (int argc, char **argv)
           opts.affect_symlink_base = false;
         }
     }
+  else
+    {
+      opts.traversal_type = TraversalType::NoFollowLinks;
+      opts.affect_symlink_base = (opts.dereference == false);
+    }
 
   if (component_specified
       && !opts.reference_file.empty ())
