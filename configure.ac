@@ -24,6 +24,8 @@ AX_CXX_COMPILE_STDCXX(17, [noext], [mandatory])
 
 AM_INIT_AUTOMAKE([foreign -Wall])
 
+PKG_CHECK_MODULES([CLI11], [CLI11])
+
 AC_CONFIG_FILES([
     Makefile
 ])

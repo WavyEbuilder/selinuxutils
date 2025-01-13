@@ -23,8 +23,11 @@ project(
     default_options : ['warning_level=3', 'cpp_std=c++17'],
 )
 
+cli11_dep = dependency('CLI11')
+
 executable(
     'chcon',
     'src/chcon.cc',
+    dependencies: cli11_dep,
     install: true,
 )
