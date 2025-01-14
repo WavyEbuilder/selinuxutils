@@ -64,17 +64,22 @@ do_chcon (const std::vector<fs::path> &files)
 {
   bool ok = true;
 
+  /* Forward decls so lambdas may recursively call each other.  */
+  std::function<void (const fs::path &)> file_handler;
+  std::function<void (const fs::path &)> directory_handler;
+  std::function<void (const fs::path &)> symlink_handler;
+
   /* As ok should only be flipped in a single direction (true -> false),
      it is okay to make the lambdas mutable.  */
-  auto file_handler = [] (const fs::path &path) mutable {
+  file_handler = [] (const fs::path &path) mutable {
     /* TODO: impl.  */
   };
 
-  auto directory_handler = [] (const fs::path &path) mutable {
+  directory_handler = [] (const fs::path &path) mutable {
     /* TODO: impl.  */
   };
 
-  auto symlink_handler = [] (const fs::path &path) mutable {
+  symlink_handler = [] (const fs::path &path) mutable {
     /* TODO: impl.  */
   };
 
