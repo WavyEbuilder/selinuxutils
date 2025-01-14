@@ -63,7 +63,54 @@ static bool
 do_chcon (const std::vector<fs::path> &files)
 {
   bool ok = true;
-  /* TODO: impl.  */
+
+  /* As ok should only be flipped in a single direction (true -> false),
+     it is okay to make the lambdas mutable.  */
+  auto file_handler = [] (const fs::path &path) mutable {
+    /* TODO: impl.  */
+  };
+
+  auto directory_handler = [] (const fs::path &path) mutable {
+    /* TODO: impl.  */
+  };
+
+  auto symlink_handler = [] (const fs::path &path) mutable {
+    /* TODO: impl.  */
+  };
+
+  for (const auto &file : files)
+    {
+      std::error_code ec;
+      auto s = fs::status (file, ec);
+
+      if (ec)
+        {
+          std::cerr << progname << ": cannot access '" << file.string ()
+                    << "': " << ec.message () << '\n';
+          ok = false;
+          continue; /* Skip past this file, but don't early-exit.  */
+        }
+
+      switch (s.type ())
+        {
+        case fs::file_type::regular:
+          file_handler (file);
+        case fs::file_type::directory:
+          /* Only worry about operating recursively for directories.  */
+          directory_handler (file);
+          break;
+        case fs::file_type::symlink:
+          /* As we are a symlink, we need to consider the dereference option. */
+          symlink_handler (file);
+          break;
+        default:
+          /* Proceed as if a regular file; we don't need to worry about any extra
+             options if not a symlink or directory.  */
+          file_handler (file);
+          break;
+        }
+    }
+
   return ok;
 }
 
