@@ -27,7 +27,6 @@
 #include <iterator>
 #include <selinux/selinux.h>
 #include <string>
-#include <string_view>
 #include <vector>
 
 namespace fs = std::filesystem;
@@ -57,9 +56,11 @@ struct Options
   TraversalType traversal_type = TraversalType::NoFollowLinks;
 };
 
+Options opts;
+char *progname;
+
 static bool
-do_chcon (const std::vector<fs::path> &files,
-          const Options &opts)
+do_chcon (const std::vector<fs::path> &files)
 {
   bool ok = true;
   /* TODO: impl.  */
@@ -87,9 +88,8 @@ to_paths (const std::vector<std::string> &vec)
 int
 main (int argc, char **argv)
 {
-  std::string_view progname = argv[0];
+  progname = argv[0];
   CLI::App app{"Change file security context"};
-  Options opts;
 
   /* We reserve the shorthand '-h' flag for ourselves.  */
   app.set_help_flag ("--help", "Print this help message and exit");
@@ -216,7 +216,7 @@ main (int argc, char **argv)
     }
 
   const auto files = to_paths (opts.files);
-  const bool ok = do_chcon (files, opts);
+  const bool ok = do_chcon (files);
 
   return ok ? 0 : 1;
 }
