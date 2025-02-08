@@ -14,7 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-bin_PROGRAMS = chcon
+bin_PROGRAMS = chcon runcon
+
 chcon_SOURCES = src/chcon.cc
 chcon_CXXFLAGS = $(CLI11_CFLAGS) $(libselinux_CFLAGS)
 chcon_LDADD = $(CLI11_LIBS) $(libselinux_LIBS)
+
+runcon_SOURCES = src/runcon.cc
+runcon_CXXFLAGS = $(CLI11_CFLAGS) $(libselinux_CFLAGS)
+runcon_LDADD = $(CLI11_LIBS) $(libselinux_LIBS)

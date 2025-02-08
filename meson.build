@@ -32,3 +32,10 @@ executable(
     dependencies: [cli11_dep, libselinux_dep],
     install: true,
 )
+
+executable(
+    'runcon',
+    'src/runcon.cc',
+    dependencies: [cli11_dep, libselinux_dep],
+    install: true,
+)
