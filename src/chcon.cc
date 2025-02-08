@@ -94,7 +94,7 @@ directory (const fs::path &path)
   auto dir_iter = fs::directory_iterator (path, ec);
   if (ec)
     {
-      std::cerr << progname << ": error: could open filesystem object '"
+      std::cerr << progname << ": error: could not open filesystem object '"
                 << path.string () << "': " << ec.message () << '\n';
       return false;
     }
