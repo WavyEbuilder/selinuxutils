@@ -27,6 +27,7 @@
 #include <iterator>
 #include <selinux/selinux.h>
 #include <string>
+#include <system_error>
 #include <vector>
 
 namespace fs = std::filesystem;
@@ -60,28 +61,132 @@ Options opts;
 char *progname;
 
 static bool
-do_chcon (const std::vector<fs::path> &files)
+change_context (const fs::path &path)
 {
   bool ok = true;
+  /* TODO: impl.  */
+  return ok;
+}
 
-  /* Forward decls so lambdas may recursively call each other.  */
-  std::function<void (const fs::path &)> file_handler;
-  std::function<void (const fs::path &)> directory_handler;
-  std::function<void (const fs::path &)> symlink_handler;
+namespace handlers
+{
 
-  /* As ok should only be flipped in a single direction (true -> false),
-     it is okay to make the lambdas mutable.  */
-  file_handler = [] (const fs::path &path) mutable {
-    /* TODO: impl.  */
-  };
+/* Forward decls.  */
+bool
+file (const fs::path &path);
 
-  directory_handler = [] (const fs::path &path) mutable {
-    /* TODO: impl.  */
-  };
+bool
+directory (const fs::path &path);
 
-  symlink_handler = [] (const fs::path &path) mutable {
-    /* TODO: impl.  */
-  };
+bool
+symlink (const fs::path &path);
+
+bool
+file (const fs::path &path)
+{
+  return change_context (path);
+}
+
+bool
+directory (const fs::path &path)
+{
+  auto ec = std::error_code ();
+  auto dir_iter = fs::directory_iterator (path, ec);
+  if (ec)
+    {
+      std::cerr << progname << ": error: could open filesystem object '"
+                << path.string () << "': " << ec.message () << '\n';
+      return false;
+    }
+  if (!opts.recursive)
+    {
+      if (!change_context (path))
+        return false;
+      return true;
+    }
+  bool ok = true;
+  for (const auto &entry : dir_iter)
+    {
+      /* Obtain the status of the symlink itself instead of where it points to.  */
+      auto status = fs::symlink_status (entry, ec);
+      if (ec)
+        {
+          std::cerr << progname
+                    << ": error: could not get status of filesystem object '"
+                    << entry.path ().string () << "': " << ec.message ()
+                    << '\n';
+          ok = false;
+          continue;
+        }
+      switch (status.type ())
+        {
+        case fs::file_type::directory:
+          if (!handlers::directory (entry))
+            ok = false;
+          break;
+        case fs::file_type::symlink:
+          if (!handlers::symlink (entry))
+            ok = false;
+          break;
+        default:
+          if (handlers::file (entry))
+            ok = false;
+          break;
+        }
+    }
+  return ok;
+}
+
+bool
+symlink (const fs::path &path)
+{  
+  if (opts.dereference)
+    {
+      auto ec = std::error_code ();
+      /* Obtain the status of the where the symlink points to.  */
+      auto status = fs::status (path, ec);
+      if (ec)
+        {
+          std::cerr << progname
+                    << ": error: could not get status of filesystem object '"
+                    << path.string () << "': " << ec.message ()
+                    << '\n';
+          return false;
+        }
+      switch (status.type ())
+        {
+        case fs::file_type::directory:
+          return handlers::directory (path);
+        case fs::file_type::symlink:
+          if (opts.traversal_type != TraversalType::FollowAllLinks)
+            return change_context (path);
+          else
+            return handlers::symlink (path);
+        default:
+          if (opts.traversal_type != TraversalType::FollowAllLinks)
+            return change_context (path);
+          else
+            return handlers::file (path);
+        }
+    }
+  else
+    {
+      /* Operate on the symlink itself.  */
+      return change_context (path);
+    }
+}
+
+} // namespace handlers
+
+static bool
+do_chcon (const std::vector<fs::path> &files)
+{
+  /* While iterating over the contents of a directory, its contents may change,
+     causing us to potentially operate on a filesystem object that no longer exists.
+     It is possible to slightly alleviate this by getting a dirfd, iterating over the
+     filesystem on unix-like operating systems is inherently racy, so only worry about
+     robustness when actually attempting to operate on an object.  */
+  bool ok = true;
 
   for (const auto &file : files)
     {
@@ -96,22 +201,24 @@ do_chcon (const std::vector<fs::path> &files)
           continue; /* Skip past this file, but don't early-exit.  */
         }
 
+      /* Kick-start the recursion.  */
       switch (s.type ())
         {
-        case fs::file_type::regular:
-          file_handler (file);
         case fs::file_type::directory:
           /* Only worry about operating recursively for directories.  */
-          directory_handler (file);
+          if (!handlers::directory (file))
+            ok = false;
           break;
         case fs::file_type::symlink:
           /* As we are a symlink, we need to consider the dereference option. */
-          symlink_handler (file);
+          if (!handlers::symlink (file))
+            ok = false;
           break;
         default:
           /* Proceed as if a regular file; we don't need to worry about any extra
              options if not a symlink or directory.  */
-          file_handler (file);
+          if (!handlers::file (file))
+            ok = false;
           break;
         }
     }
