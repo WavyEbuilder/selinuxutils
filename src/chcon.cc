@@ -139,7 +139,7 @@ directory (const fs::path &path)
 
 bool
 symlink (const fs::path &path)
-{  
+{
   if (opts.dereference)
     {
       auto ec = std::error_code ();
